@@ -9,4 +9,5 @@
 I develop the tool in MAC OSX 10.11 with Python3.5, PyQt5 is also required.
 
 #License
+
 The Annotation Tool is released under the BSD License (refer to the LICENSE file for details).
