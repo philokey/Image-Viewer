@@ -3,6 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#local
+Storyboard/
+data/
+result/
+test*
+Test*
+.idea/
+Storyboard
+
 # C extensions
 *.so
 
