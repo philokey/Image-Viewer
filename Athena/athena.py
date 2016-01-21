@@ -17,12 +17,12 @@ class MainWindow(QtWidgets.QWidget):
     # _signal = QtCore.pyqtSignal()
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("Athena")
+        self.setWindowTitle("Athena(beta)")
         self.resize(1280, 800)
 
         # 读入路径
-        # imageFolder = self.showFileDialog()
-        imageFolder = '/Users/philokey/Comic'  #调试方便
+        imageFolder = self.showFileDialog()
+        # imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
         self.screen = QtWidgets.QDesktopWidget().screenGeometry()
