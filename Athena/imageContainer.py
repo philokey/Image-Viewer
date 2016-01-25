@@ -41,9 +41,11 @@ class ImageContainer(QtWidgets.QFrame):
         self.result = [[], []]
         self.isModified = False
         self.isConfused = False
-        self.image.load(path)
+        print(path)
+        self.image.load(path, '1') #read image
         self.imagePath = path
         imgSize = self.image.size()
+        print(self.image, imgSize)
         # if image is too wide, it should be resize to width = MAXWIDTH
         if imgSize.width() > MAXWIDTH:
             self.scale = imgSize.width() / MAXWIDTH
