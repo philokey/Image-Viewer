@@ -140,7 +140,7 @@ class MainWindow(QtWidgets.QWidget):
         pnButtonLayout.addWidget(self.nextBtn)
         buttonLayout.addLayout(pnButtonLayout)
 
-        self.quitBtn = QtWidgets.QPushButton('fuuuuck')
+        self.quitBtn = QtWidgets.QPushButton('Quit')
         self.quitBtn.clicked.connect(self.close)
         buttonLayout.addWidget(self.quitBtn)
 
