@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 
-MAXWIDTH = 750
+MAXWIDTH = 450
 RECT = 0
 POLY = 1
 
@@ -50,7 +50,7 @@ class ImageContainer(QtWidgets.QFrame):
         if imgSize.width() > MAXWIDTH:
             self.scale = imgSize.width() / MAXWIDTH
             imgSize /= self.scale
-            self.image = self.image.scaled(imgSize)
+            self.image = self.image.scaled(imgSize, transformMode = QtCore.Qt.SmoothTransformation)
         else:
             self.scale = 1
         self.oriImage = self.image.copy()

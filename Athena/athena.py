@@ -21,8 +21,8 @@ class MainWindow(QtWidgets.QWidget):
         self.resize(1280, 800)
 
         # 读入路径
-        imageFolder = self.showFileDialog()
-        # imageFolder = '/Users/philokey/Comic'  #调试方便
+        # imageFolder = self.showFileDialog()
+        imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
         self.screen = QtWidgets.QDesktopWidget().screenGeometry()
@@ -40,7 +40,7 @@ class MainWindow(QtWidgets.QWidget):
         # 只显示文件夹
         # self.dirModel.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         # self.fileSystemModel.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
-
+        self.dirModel.setSorting(QtCore.QDir.Name)
         # 文件列表view
         self.dirTreeView = QtWidgets.QTreeView()
 
@@ -182,18 +182,21 @@ class MainWindow(QtWidgets.QWidget):
                 self.repaint()
                 resultDir, resultName = self.imageContainer.getOutputFileName(0)  # 0 is frame
                 fullPath = os.path.join(resultDir, resultName)
-                os.system(exeDir+' ' + self.imageContainer.imagePath + ' ' + fullPath)
+                # print(exeDir+' ' + self.imageContainer.imagePath + ' ' + fullPath)
+                subprocess.run([exeDir, self.imageContainer.imagePath, fullPath])
+                # os.system(exeDir+' ' + self.imageContainer.imagePath + ' ' + fullPath)
                 text = open(fullPath).read()
                 self.dectState.setText("")
             else:
                 QtWidgets.QMessageBox.critical(self, "Error", "Local detecting program is NOT FOUND!")
                 return
         else:
-            url = 'http://10.1.85.152:8080/'
+            url = 'http://10.1.89.8:8080/'
             img = {'file':open(self.imageContainer.imagePath, 'rb')}
             self.dectState.setText("detecting...")
             self.repaint()
             try:
+                # print(url)
                 r = requests.post(url, files=img)
             except:
                 QtWidgets.QMessageBox.critical(self, "Error", "Failed to establish connection.")
@@ -231,7 +234,7 @@ class MainWindow(QtWidgets.QWidget):
         #获取选择的路径
         pathSelected = self.dirModel.filePath(self.dirTreeView.selectedIndexes()[0])
         print('fileSelected   ', pathSelected)
-        if os.path.isfile(pathSelected) and pathSelected.split('.')[-1] in FILE_TYPE:
+        if os.path.isfile(pathSelected) and pathSelected.split('.')[-1].lower() in FILE_TYPE:
             self.confusedCheckBox.setChecked(False)
             self.imageContainer.loadImage(pathSelected)
 
