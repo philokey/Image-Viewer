@@ -1,7 +1,9 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 
-MAXWIDTH = 450
+MAXWIDTH = 750
+MAXHEIGHT = 600
+
 RECT = 0
 POLY = 1
 
@@ -9,6 +11,7 @@ class ImageContainer(QtWidgets.QFrame):
     def __init__(self, widgets = None):
         super(ImageContainer, self).__init__()
         containerLayout = QtWidgets.QVBoxLayout()
+
         self.graphicsView = QtWidgets.QGraphicsView()
         self.graphicsView.setCursor(QtCore.Qt.CrossCursor)
         self.graphicsView.setObjectName("graphicsView")
@@ -26,6 +29,7 @@ class ImageContainer(QtWidgets.QFrame):
 
         self.isModified = False
         self.isConfused = False
+        self.isLarge = False
         # 0 for rectangle, 1 for polygon
         self.boxShape = 0
         self.scale = 1
@@ -45,14 +49,28 @@ class ImageContainer(QtWidgets.QFrame):
         self.image.load(path, '1') #read image
         self.imagePath = path
         imgSize = self.image.size()
-        print(self.image, imgSize)
-        # if image is too wide, it should be resize to width = MAXWIDTH
-        if imgSize.width() > MAXWIDTH:
-            self.scale = imgSize.width() / MAXWIDTH
-            imgSize /= self.scale
-            self.image = self.image.scaled(imgSize, transformMode = QtCore.Qt.SmoothTransformation)
+        # print(self.image, imgSize)
+        print(self.geometry())
+        MAXWIDTH = self.geometry().width()*0.9
+        MAXHEIGHT = self.geometry().height()*0.9
+        if self.isLarge:
+            # if image is too wide, it should be resize to width = MAXWIDTH
+            if imgSize.width() > MAXWIDTH:
+                self.scale = imgSize.width() / MAXWIDTH
+                imgSize /= self.scale
+                self.image = self.image.scaled(imgSize, transformMode = QtCore.Qt.SmoothTransformation)
+            else:
+                self.scale = 1
+            self.oriImage = self.image.copy()
+            self.loadExistResult(path)
         else:
-            self.scale = 1
+            # if image is too wide, it should be resize to width = MAXWIDTH
+            if imgSize.height() > MAXHEIGHT:
+                self.scale = imgSize.height() / MAXHEIGHT
+                imgSize /= self.scale
+                self.image = self.image.scaled(imgSize, transformMode = QtCore.Qt.SmoothTransformation)
+            else:
+                self.scale = 1
         self.oriImage = self.image.copy()
         self.loadExistResult(path)
 

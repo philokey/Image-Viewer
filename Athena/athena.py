@@ -4,10 +4,12 @@ from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
 
 import sys
 import os
+import os.path as osp
 import datetime
 import time
 import subprocess
 import requests
+import pickle
 
 FILE_TYPE = ['jpg', 'jpeg', 'tif', 'bmp', 'gif', 'png']
 RECT = 0
@@ -20,9 +22,10 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle("Athena(beta)")
         self.resize(1280, 800)
 
+        self.settings = QtCore.QSettings('setting.ini', QtCore.QSettings.IniFormat)
         # 读入路径
         # imageFolder = self.showFileDialog()
-        imageFolder = '/Users/philokey/Comic'  #调试方便
+        self.imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
         self.screen = QtWidgets.QDesktopWidget().screenGeometry()
@@ -32,7 +35,8 @@ class MainWindow(QtWidgets.QWidget):
         self.show()
 
         # 文件, 图片, 按钮 三部分
-        self.mainLayout = QtWidgets.QGridLayout()
+        # self.mainLayout = QtWidgets.QGridLayout()
+        self.mainLayout = QtWidgets.QHBoxLayout()
 
         # 文件夹列表model
         self.dirModel = QtWidgets.QDirModel(self)
@@ -41,13 +45,15 @@ class MainWindow(QtWidgets.QWidget):
         # self.dirModel.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         # self.fileSystemModel.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         self.dirModel.setSorting(QtCore.QDir.Name)
+
+
         # 文件列表view
         self.dirTreeView = QtWidgets.QTreeView()
 
         # 绑定model
         self.dirTreeView.setModel(self.dirModel)
         # self.dirTreeView.setModel(self.fileSystemModel)
-        self.dirTreeView.setRootIndex(self.dirModel.index(imageFolder))
+        self.dirTreeView.setRootIndex(self.dirModel.index(self.imageFolder))
 
         self.dirTreeView.hideColumn(1)
         self.dirTreeView.hideColumn(2)
@@ -56,21 +62,38 @@ class MainWindow(QtWidgets.QWidget):
         # DirTree事件响应
         self.dirTreeView.selectionModel().selectionChanged.connect(self.dirTreeClicked)
 
-        self.mainLayout.addWidget(self.dirTreeView, 0, 0)
-        self.mainLayout.setColumnMinimumWidth(1, 800)
+        # self.mainLayout.addWidget(self.dirTreeView, 0, 0)
+        self.mainLayout.addWidget(self.dirTreeView)
+        # self.mainLayout.setColumnMinimumWidth(1, 800)
 
         self.imageContainer = ImageContainer()
-        self.mainLayout.addWidget(self.imageContainer, 0, 1)
-
+        # self.mainLayout.addWidget(self.imageContainer, 0, 1)
+        print(self.geometry().width())
+        self.imageContainer.setMinimumWidth(self.geometry().width()*0.6)
+        self.mainLayout.addWidget(self.imageContainer)
         self.initButton()
-
-        self.mainLayout.setColumnMinimumWidth(2, 200)
-        self.mainLayout.setColumnMinimumWidth(0, 200)
-
         self.setLayout(self.mainLayout)
+        self.restoreState()
+
 
     def initButton(self):
         buttonLayout = QtWidgets.QVBoxLayout()
+
+        # box shape
+        slGroup = QtWidgets.QButtonGroup(self)
+        slButtonLayout = QtWidgets.QHBoxLayout()
+        self.smlRad = QtWidgets.QRadioButton("Small")
+        self.smlRad.clicked.connect(self.clickSmlRad)
+        self.smlRad.setChecked(True)
+        self.larRad = QtWidgets.QRadioButton("Large")
+        self.larRad.clicked.connect(self.clickLarRad)
+        slButtonLayout.addWidget(self.smlRad)
+        slButtonLayout.addWidget(self.larRad)
+        slGroup.addButton(self.smlRad)
+        slGroup.addButton(self.larRad)
+        buttonLayout.addLayout(slButtonLayout)
+
+
         # radio group
         fbGroup = QtWidgets.QButtonGroup(self)
         fbradButtonLayout = QtWidgets.QHBoxLayout()
@@ -144,7 +167,16 @@ class MainWindow(QtWidgets.QWidget):
         self.quitBtn.clicked.connect(self.close)
         buttonLayout.addWidget(self.quitBtn)
 
-        self.mainLayout.addLayout(buttonLayout, 0, 2)
+        # self.mainLayout.addLayout(buttonLayout, 0, 2)
+        self.mainLayout.addLayout(buttonLayout)
+
+    def clickSmlRad(self):
+        self.imageContainer.isLarge = False
+        self.imageContainer.loadImage(self.imageContainer.imagePath)
+
+    def clickLarRad(self):
+        self.imageContainer.isLarge = True
+        self.imageContainer.loadImage(self.imageContainer.imagePath)
 
     def clickFrameRad(self):
         self.imageContainer.type = 0
@@ -174,9 +206,9 @@ class MainWindow(QtWidgets.QWidget):
         if self.imageContainer.imagePath == '':
             print("Where is image?")
             return
-        exeDir = os.path.join(os.getcwd(), 'Storyboard')
+        exeDir = osp.join(os.getcwd(), 'Storyboard')
         if self.detectOfflineBox.isChecked():
-            if os.path.isfile(exeDir):
+            if osp.isfile(exeDir):
                 print("local")
                 self.dectState.setText("detecting...")
                 self.repaint()
@@ -233,7 +265,6 @@ class MainWindow(QtWidgets.QWidget):
     def dirTreeClicked(self):
         #获取选择的路径
         pathSelected = self.dirModel.filePath(self.dirTreeView.selectedIndexes()[0])
-        print('fileSelected   ', pathSelected)
         if os.path.isfile(pathSelected) and pathSelected.split('.')[-1].lower() in FILE_TYPE:
             self.confusedCheckBox.setChecked(False)
             self.imageContainer.loadImage(pathSelected)
@@ -252,6 +283,37 @@ class MainWindow(QtWidgets.QWidget):
     def showFileDialog(self):   # 获取标注图片的文件夹
         # fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/home')
         return QtWidgets.QFileDialog.getExistingDirectory(self, 'Open file', '/User/Philokey')
+
+    def restoreState(self):
+        imageFolder = self.settings.value('imageFolder')
+        selectedFile = self.settings.value('selected')
+        # print(imageFolder, selectedFile)
+        index = self.dirModel.index(selectedFile)
+        if index.isValid():
+            # self.dirTreeView.expand(index)
+            self.dirTreeView.setCurrentIndex(index)
+
+
+    def saveState(self):
+        states = []
+        for index in self.dirModel.persistentIndexList():
+            if self.dirTreeView.isExpanded(index):
+                # print(index.data())
+                states.append(index.data())
+        self.settings.setValue("selected", self.dirModel.filePath(self.dirTreeView.selectedIndexes()[0]))
+        self.settings.setValue("imageFolder", self.imageFolder)
+        # print(self.dirTreeView.selectedIndexes()[0].row())
+        # self.settings.setValue("Path", self.dirTreeView.selectedIndexes()[0])
+
+    def closeEvent(self, event):        #关闭窗口触发以下事件
+        print("exit")
+        self.saveState()
+        # pickle.dump({'view' : self.dirTreeView, 'model' : self.dirModel}, open(osp.join(os.getcwd(), 'config'), 'wb'))
+        # reply = QtWidgets.QMessageBox.question(self, '消息框标题', '你确定要退出吗?',  QtWidgets.QMessageBox.Yes |  QtWidgets.QMessageBox.No,  QtWidgets.QMessageBox.No)
+        # if reply ==  QtWidgets.QMessageBox.Yes:
+        #     event.accept()        #接受关闭事件
+        # else:
+        #     event.ignore()        #忽略关闭事件
 
 
 if __name__ == "__main__":
