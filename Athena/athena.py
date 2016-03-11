@@ -15,24 +15,33 @@ FILE_TYPE = ['jpg', 'jpeg', 'tif', 'bmp', 'gif', 'png']
 RECT = 0
 POLY = 1
 
-class MainWindow(QtWidgets.QWidget):
+class MainWindow(QtWidgets.QMainWindow):
     # _signal = QtCore.pyqtSignal()
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("Athena(beta)")
+        self.setWindowTitle("Athena 0.8")
         self.resize(1280, 800)
 
         self.settings = QtCore.QSettings('setting.ini', QtCore.QSettings.IniFormat)
         # 读入路径
-        # imageFolder = self.showFileDialog()
-        self.imageFolder = '/Users/philokey/Comic'  #调试方便
+        self.imageFolder = self.showFileDialog()
+        # print(self.imageFolder,"............")
+        # self.imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
         self.screen = QtWidgets.QDesktopWidget().screenGeometry()
         self.size = self.geometry()
         self.move((self.screen.width()-self.size.width())/2, (self.screen.height()-self.size.height())/2)
 
-        self.show()
+        # exit = QtWidgets.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self)
+        # exit.setShortcut('Ctrl+Q')
+        # exit.setStatusTip('Exit application')
+        # exit.triggered.connect(self.close)
+        # menubar = self.menuBar()
+        # file = menubar.addMenu('&File')
+        # file.addAction(exit)
+
+
 
         # 文件, 图片, 按钮 三部分
         # self.mainLayout = QtWidgets.QGridLayout()
@@ -68,11 +77,16 @@ class MainWindow(QtWidgets.QWidget):
 
         self.imageContainer = ImageContainer()
         # self.mainLayout.addWidget(self.imageContainer, 0, 1)
-        print(self.geometry().width())
+        # print(self.geometry().width())
         self.imageContainer.setMinimumWidth(self.geometry().width()*0.6)
+        print(self.geometry().width()*0.6)
         self.mainLayout.addWidget(self.imageContainer)
         self.initButton()
-        self.setLayout(self.mainLayout)
+        self.widget = QtWidgets.QWidget()
+        self.widget.setLayout(self.mainLayout)
+        self.setCentralWidget(self.widget)
+        # self.setLayout(self.mainLayout)
+        self.show()
         self.restoreState()
 
 
@@ -86,6 +100,7 @@ class MainWindow(QtWidgets.QWidget):
         self.smlRad.clicked.connect(self.clickSmlRad)
         self.smlRad.setChecked(True)
         self.larRad = QtWidgets.QRadioButton("Large")
+
         self.larRad.clicked.connect(self.clickLarRad)
         slButtonLayout.addWidget(self.smlRad)
         slButtonLayout.addWidget(self.larRad)
@@ -282,16 +297,17 @@ class MainWindow(QtWidgets.QWidget):
 
     def showFileDialog(self):   # 获取标注图片的文件夹
         # fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/home')
-        return QtWidgets.QFileDialog.getExistingDirectory(self, 'Open file', '/User/Philokey')
+        return QtWidgets.QFileDialog.getExistingDirectory(self, 'Open file', self.settings.value("imageFolder"))
 
     def restoreState(self):
         imageFolder = self.settings.value('imageFolder')
-        selectedFile = self.settings.value('selected')
-        # print(imageFolder, selectedFile)
-        index = self.dirModel.index(selectedFile)
-        if index.isValid():
-            # self.dirTreeView.expand(index)
-            self.dirTreeView.setCurrentIndex(index)
+        if imageFolder == self.imageFolder:
+            selectedFile = self.settings.value('selected')
+            # print(imageFolder, selectedFile)
+            index = self.dirModel.index(selectedFile)
+            if index.isValid():
+                # self.dirTreeView.expand(index)
+                self.dirTreeView.setCurrentIndex(index)
 
 
     def saveState(self):

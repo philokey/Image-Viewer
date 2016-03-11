@@ -9,6 +9,8 @@ data/
 result/
 test*
 Test*
+config
+setting*
 .idea/
 Storyboard
 
