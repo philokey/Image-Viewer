@@ -25,7 +25,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings = QtCore.QSettings('setting.ini', QtCore.QSettings.IniFormat)
         # 读入路径
         self.imageFolder = self.showFileDialog()
-        # print(self.imageFolder,"............")
         # self.imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
