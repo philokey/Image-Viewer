@@ -1,10 +1,11 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
+import math
 
 MAXWIDTH = 750
 MAXHEIGHT = 600
 
-RECT = 0
+CIRC = 0
 POLY = 1
 
 class ImageContainer(QtWidgets.QFrame):
@@ -25,10 +26,9 @@ class ImageContainer(QtWidgets.QFrame):
         # 当前绘制的多边形的顶点
         self.vertexes = []
         # frames and balloons
-        self.result = [[], []]
+        self.result = []
 
         self.isModified = False
-        self.isConfused = False
         self.isLarge = False
         # 0 for rectangle, 1 for polygon
         self.boxShape = 0
@@ -37,14 +37,12 @@ class ImageContainer(QtWidgets.QFrame):
         self.preImagePath = ''
         self.type = 0  # 0 frame, 1 Balloon
         self.boxColor = (QtCore.Qt.blue, QtCore.Qt.red)
-        self.typeName = ('Frame', 'Balloon')
         self.typeId = (0, 1)
 
     def loadImage(self, path):
         self.vertexes = []
-        self.result = [[], []]
+        self.result = []
         self.isModified = False
-        self.isConfused = False
         print(path)
         self.image.load(path, '1') #read image
         self.imagePath = path
@@ -72,9 +70,13 @@ class ImageContainer(QtWidgets.QFrame):
             else:
                 self.scale = 1
         self.oriImage = self.image.copy()
-        self.loadExistResult(path)
+        # self.loadExistResult(path)
+        scene = QtWidgets.QGraphicsScene()
+        scene.addPixmap(self.image)
+        self.graphicsView.setScene(scene)
 
     def loadExistResult(self, path):
+        '''
         splitedPath = self.imagePath.split('/')
         baseDir = '/'.join(splitedPath[:-1])
         imageName = splitedPath[-1]
@@ -86,11 +88,13 @@ class ImageContainer(QtWidgets.QFrame):
                 resultTxt = open(fullPath).read()
                 self.parseDetectedResult(resultTxt, t)
         self.paintTotalResult()
+        '''
+        pass
 
     def clearImage(self):
         if self.imagePath != '':
             self.isModified = True
-            self.result = ([], [])
+            self.result = []
             self.vertexes.clear()
             self.image = self.oriImage.copy()
             scene = QtWidgets.QGraphicsScene()
@@ -102,39 +106,14 @@ class ImageContainer(QtWidgets.QFrame):
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.paintVertex(event)
-            if self.boxShape == POLY:
-                self.paintLine(True)
 
         elif event.button() == QtCore.Qt.RightButton:
             self.isModified = True
             if len(self.vertexes) < 2:
                 return
-            if self.boxShape == RECT:
-                if len(self.vertexes) == 2:
-                    self.paintRectangle()
-                else:
-                    self.paintPolygon()
-            else:
-                self.paintLine(False)
+            if self.boxShape == CIRC:
+                self.paintCircle()
 
-    def paintLine(self, isLeft):
-        n = len(self.vertexes)
-        if n < 2: return
-        tp = self.type
-        painter = self.initMyPainter(tp)
-        if isLeft:
-            painter.drawLine(self.vertexes[n - 2], self.vertexes[n - 1])
-        else:
-            mx = sum(v.x() for v in self.vertexes) / n
-            my = sum(v.y() for v in self.vertexes) / n
-            self.result[tp].append(self.vertexes[:])
-            painter.drawLine(self.vertexes[-1], self.vertexes[0])
-            painter.drawText(QtCore.QPoint(mx, my), str(len(self.result[tp])))
-            self.vertexes.clear()
-        scene = QtWidgets.QGraphicsScene()
-        # scene.addPixmap(QtGui.QPixmap.fromImage(self.image))
-        scene.addPixmap(self.image)
-        self.graphicsView.setScene(scene)
 
     def paintVertex(self, event):
         painter = QtGui.QPainter(self.image)
@@ -147,7 +126,7 @@ class ImageContainer(QtWidgets.QFrame):
         p = self.graphicsView.mapToScene(event.pos()) - self.graphicsView.pos() - QtCore.QPoint(2, 1)
         p = QtCore.QPoint(p.x(), p.y())
         painter.drawPoint(p)
-
+        print(p)
         # print('maptosence: ', p)
         self.vertexes.append(p)
         scene = QtWidgets.QGraphicsScene()
@@ -167,36 +146,33 @@ class ImageContainer(QtWidgets.QFrame):
         painter.setFont(font)
         return painter
 
-    def paintRectangle(self):
-        painter = self.initMyPainter(self.type)
-        topLeft = QtCore.QPoint(min(self.vertexes[0].x(), self.vertexes[1].x()),
-                                min(self.vertexes[0].y(), self.vertexes[1].y()))
-        topRight = QtCore.QPoint(min(self.vertexes[0].x(), self.vertexes[1].x()),
-                                 max(self.vertexes[0].y(), self.vertexes[1].y()))
-        bottomleft = QtCore.QPoint(max(self.vertexes[0].x(), self.vertexes[1].x()),
-                                   min(self.vertexes[0].y(), self.vertexes[1].y()))
-        bottomRight = QtCore.QPoint(max(self.vertexes[0].x(), self.vertexes[1].x()),
-                                    max(self.vertexes[0].y(), self.vertexes[1].y()))
-        self.result[self.type].append([topLeft, topRight, bottomRight, bottomleft])
-        rect = QtCore.QRect(topLeft, bottomRight)
-        painter.drawRect(rect)
-        mx = (self.vertexes[0].x() + self.vertexes[1].x()) / 2
-        my = (self.vertexes[0].y() + self.vertexes[1].y()) / 2
-        painter.drawText(QtCore.QPoint(mx, my), str(len(self.result[self.type])))
-        scene = QtWidgets.QGraphicsScene()
-        scene.addPixmap(self.image)
-        self.graphicsView.setScene(scene)
-        self.vertexes.clear()
 
-    def paintPolygon(self):
-        self.result[self.type].append(self.vertexes[:])
-        n = len(self.vertexes)
-        painter = self.initMyPainter(self.type)
-        mx = sum(v.x() for v in self.vertexes) / n
-        my = sum(v.y() for v in self.vertexes) / n
-        painter.drawPolygon(QtGui.QPolygon(self.vertexes))
+    def fitCircle(self):
+        p1x, p1y = self.vertexes[-3].x(), self.vertexes[-3].y()
+        p2x, p2y = self.vertexes[-2].x(), self.vertexes[-2].y()
+        p3x, p3y = self.vertexes[-1].x(), self.vertexes[-1].y()
 
-        painter.drawText(QtCore.QPoint(mx, my), str(len(self.result[self.type])))
+        midP1x = (p2x + p1x) / 2
+        midP1y = (p2y + p1y) / 2
+
+        midP2x = (p3x + p1x) / 2
+        midP2y = (p3y + p1y) / 2
+
+        k1 = -(p2x - p1x) / (p2y - p1y)
+        k2 = -(p3x - p1x) / (p3y - p1y)
+        cx = (midP2y - midP1y - k2 * midP2x + k1 * midP1x) / (k1 - k2)
+        cy = midP1y + k1 * (midP2y - midP1y - k2 * midP2x + k2 * midP1x) / (k1 - k2)
+        r = math.sqrt((cx - p1x)*(cx - p1x) + (cy - p1y) * (cy - p1y))
+        print(cx, cy, r)
+        return cx, cy, r
+
+    def paintCircle(self):
+        circle = self.fitCircle()
+        self.result.append(circle)
+        painter = self.initMyPainter(self.type)
+        cx, cy, r = circle[0], circle[1], circle[2]
+        painter.drawEllipse(cx - r, cy - r, r*2, r*2)
+        # painter.drawText(QtCore.QPoint(mx, my), str(len(self.result[self.type])))
         scene = QtWidgets.QGraphicsScene()
         scene.addPixmap(self.image)
         self.graphicsView.setScene(scene)
@@ -219,34 +195,34 @@ class ImageContainer(QtWidgets.QFrame):
         except:
             print("Parse Error! Result's format is wrong!")
 
-    def paintTotalResult(self):
-        for tp in self.typeId:
-            painter = self.initMyPainter(tp)
-            for id, vertexes in enumerate(self.result[tp]):
-                n = len(vertexes)
-                mx = sum(v.x() for v in vertexes) / n
-                my = sum(v.y() for v in vertexes) / n
-                painter.drawPolygon(QtGui.QPolygon(vertexes))
-                painter.drawText(QtCore.QPoint(mx, my), str(id + 1))
-            painter.end()
-        scene = QtWidgets.QGraphicsScene()
-        scene.addPixmap(self.image)
-        self.graphicsView.setScene(scene)
+    # def paintTotalResult(self):
+    #     for tp in self.typeId:
+    #         painter = self.initMyPainter(tp)
+    #         for id, vertexes in enumerate(self.result[tp]):
+    #             n = len(vertexes)
+    #             mx = sum(v.x() for v in vertexes) / n
+    #             my = sum(v.y() for v in vertexes) / n
+    #             painter.drawPolygon(QtGui.QPolygon(vertexes))
+    #             painter.drawText(QtCore.QPoint(mx, my), str(id + 1))
+    #         painter.end()
+    #     scene = QtWidgets.QGraphicsScene()
+    #     scene.addPixmap(self.image)
+    #     self.graphicsView.setScene(scene)
 
-    def deleteBoxes(self, dlst):
-        # A naive way to delete boxes. To be update.
-        l = []
-        tp = self.type
-        n = len(self.result[tp])
-        for i in range(n):
-            if i not in dlst:
-                l.append(self.result[tp][i])
-
-        self.result[tp] = l
-        self.image = self.oriImage.copy()
-        self.paintTotalResult()
-        self.isModified = True
-        # self.paintTotalResult(tp ^ 1)
+    # def deleteBoxes(self, dlst):
+    #     # A naive way to delete boxes. To be update.
+    #     l = []
+    #     tp = self.type
+    #     n = len(self.result[tp])
+    #     for i in range(n):
+    #         if i not in dlst:
+    #             l.append(self.result[tp][i])
+    #
+    #     self.result[tp] = l
+    #     self.image = self.oriImage.copy()
+    #     self.paintTotalResult()
+    #     self.isModified = True
+    #     # self.paintTotalResult(tp ^ 1)
 
     def getOutputFileName(self, t):
         splitedPath = self.imagePath.split('/')
@@ -255,36 +231,26 @@ class ImageContainer(QtWidgets.QFrame):
         resultDir = os.path.join(baseDir, 'result')
         if os.path.exists(resultDir) == False:
             os.mkdir(resultDir)
-        resultName = self.typeName[t] + '_' + imageName + '.txt'
+        resultName = 'circle' + '_' + imageName + '.txt'
         return resultDir, resultName
 
     def saveResult(self):
         if self.isModified:
             for t in (0, 1):
-                n = len(self.result[t])
+                n = len(self.result)
                 resultDir, resultName = self.getOutputFileName(t)
                 outFile = open(os.path.join(resultDir, resultName), 'w')
                 outFile.write(str(n)+'\n')
-                for res in self.result[t]:
-                    m = len(res)
-                    outFile.write(str(m))
+                print(self.result)
+                for res in self.result:
                     if self.scale != 1:
                         res = [p * self.scale for p in res]
-                    for i in range(m):
-                        outFile.write(' ' + str(res[i].x()) + ' ' + str(res[i].y()))
-                    outFile.write('\n')
+                        # print(res)
+                    outFile.write(str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
                 outFile.close()
         else:
             print("Nothing to save!")
 
-        if self.isConfused:
-            splitedPath = self.imagePath.split('/')
-            baseDir = '/'.join(splitedPath[:-1])
-            resultDir = os.path.join(baseDir, 'result')
-            if os.path.exists(resultDir) == False:
-                os.mkdir(resultDir)
-            outFile = open(os.path.join(resultDir, 'confused.txt'), 'a+', encoding='utf-8')
-            outFile.write(self.imagePath + '\n')
-            outFile.close()
+
 
 
