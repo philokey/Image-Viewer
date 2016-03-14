@@ -1,0 +1,7 @@
+#Branch for Circle Annotation
+
+##Useage
+
+Select three points by click left mouse button, click right mouse button to fit the circle.
+
+Circles will be saved in ./result

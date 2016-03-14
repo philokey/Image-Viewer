@@ -180,18 +180,18 @@ class ImageContainer(QtWidgets.QFrame):
 
     def parseDetectedResult(self, result, tp):
         lines = result.strip().split('\n')
-        self.result[tp].clear()
+        self.result.clear()
         try:
             n = int(lines[0])
             for i in range(1, n + 1):
                 points = list(map(int, lines[i].strip().split()))
-                m = points[0] * 2 + 1
+
                 if self.scale != 1:
                     points = [p / self.scale for p in points]
                 vs = []
-                for j in range(1, m, 2):
-                    vs.append(QtCore.QPoint(points[j], points[j + 1]))
-                self.result[tp].append(vs)
+                for j in range(3):
+                    vs.append(points[j])
+                self.result.append(vs)
         except:
             print("Parse Error! Result's format is wrong!")
 
