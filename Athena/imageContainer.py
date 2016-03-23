@@ -1,12 +1,14 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 import math
+import cv2
+import numpy as np
 
 MAXWIDTH = 750
 MAXHEIGHT = 600
 
 CIRC = 0
-POLY = 1
+ELLI = 1
 
 class ImageContainer(QtWidgets.QFrame):
     def __init__(self, widgets = None):
@@ -14,7 +16,7 @@ class ImageContainer(QtWidgets.QFrame):
         containerLayout = QtWidgets.QVBoxLayout()
 
         self.graphicsView = QtWidgets.QGraphicsView()
-        self.graphicsView.setCursor(QtCore.Qt.CrossCursor)
+        # self.graphicsView.setCursor(QtCore.Qt.CrossCursor)
         self.graphicsView.setObjectName("graphicsView")
         # self.image can be painted
         self.image = QtGui.QPixmap()
@@ -31,11 +33,10 @@ class ImageContainer(QtWidgets.QFrame):
         self.isModified = False
         self.isLarge = False
         # 0 for rectangle, 1 for polygon
-        self.boxShape = 0
+        self.boxShape = ELLI
         self.scale = 1
         self.imagePath = ''
         self.preImagePath = ''
-        self.type = 0  # 0 frame, 1 Balloon
         self.boxColor = (QtCore.Qt.blue, QtCore.Qt.red)
         self.typeId = (0, 1)
 
@@ -113,7 +114,8 @@ class ImageContainer(QtWidgets.QFrame):
                 return
             if self.boxShape == CIRC:
                 self.paintCircle()
-
+            elif self.boxShape == ELLI:
+                self.fitEllipse()
 
     def paintVertex(self, event):
         painter = QtGui.QPainter(self.image)
@@ -165,6 +167,17 @@ class ImageContainer(QtWidgets.QFrame):
         r = math.sqrt((cx - p1x)*(cx - p1x) + (cy - p1y) * (cy - p1y))
         print(cx, cy, r)
         return cx, cy, r
+
+    def fitEllipse(self):
+        points = []
+        for v in self.vertexes:
+            x, y = v.x(), v.y()
+            points.append((x, y))
+        points = np.array(points)
+        # print(points)
+        ell = cv2.fitEllipse(points)
+        print("%.6f %.6f %.6f %.6f %.3f" %(ell[0][0], ell[0][1], ell[1][0] / 2, ell[1][1] / 2, ell[2]))
+        self.vertexes.clear()
 
     def paintCircle(self):
         circle = self.fitCircle()

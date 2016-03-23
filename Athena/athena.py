@@ -12,8 +12,8 @@ import requests
 import pickle
 
 FILE_TYPE = ['jpg', 'jpeg', 'tif', 'bmp', 'gif', 'png']
-RECT = 0
-POLY = 1
+CIRC = 0
+ELLI = 1
 
 class MainWindow(QtWidgets.QMainWindow):
     # _signal = QtCore.pyqtSignal()
@@ -24,8 +24,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.settings = QtCore.QSettings('setting.ini', QtCore.QSettings.IniFormat)
         # 读入路径
-        # self.imageFolder = self.showFileDialog()
-        self.imageFolder = '/Users/philokey/Comic'  #调试方便
+        self.imageFolder = self.showFileDialog()
+        # self.imageFolder = '/Users/philokey/Comic'  #调试方便
 
         # 屏幕居中
         self.screen = QtWidgets.QDesktopWidget().screenGeometry()
