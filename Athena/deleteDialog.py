@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import math
 
 class DeleteDialog(QtWidgets.QDialog):
@@ -26,6 +26,16 @@ class DeleteDialog(QtWidgets.QDialog):
         layout.addWidget(self.buttons, math.ceil((n + 1) / 2) + 1, 0)
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)
+        # self.setCursorPos()
+        # self.setGeometry()
+
+    def setCursorPos(self):
+        # pos = self.buttons.pos()
+        pos = self.pos() + QtCore.QPoint(self.geometry().width() / 2, self.geometry().height() / 2)
+
+        # pos = self.buttons.mapToParent(pos)
+        print(pos.x(), pos.y())
+        QtGui.QCursor.setPos(pos)
 
     def getChecked(self):
         ret = []
@@ -37,6 +47,10 @@ class DeleteDialog(QtWidgets.QDialog):
     @staticmethod
     def getInfo(n, tp):
         dialog = DeleteDialog(n, tp)
+        dialog.show()
+        dialog.setCursorPos()
+        # pos = dialog.pos()
+        # print(pos.x(), pos.y())
         result = dialog.exec_()
         ret = dialog.getChecked()
         return ret, result == QtWidgets.QDialog.Accepted

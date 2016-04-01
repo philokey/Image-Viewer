@@ -11,9 +11,9 @@ test*
 Test*
 config
 setting*
-.idea/
+*.idea/
 Storyboard
-
+workspace.xml
 # C extensions
 *.so
 

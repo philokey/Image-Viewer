@@ -220,6 +220,7 @@ class ImageContainer(QtWidgets.QFrame):
             print("Parse Error! Result's format is wrong!")
 
     def paintTotalResult(self):
+        # print("after delete.........................")
         for tp in self.typeId:
             painter = self.initMyPainter(tp)
             for id, vertexes in enumerate(self.result[tp]):
@@ -232,6 +233,8 @@ class ImageContainer(QtWidgets.QFrame):
         scene = QtWidgets.QGraphicsScene()
         scene.addPixmap(self.image)
         self.graphicsView.setScene(scene)
+        # self.repaint()
+        # self.graphicsView.repaint()
 
     def deleteBoxes(self, dlst):
         # A naive way to delete boxes. To be update.
