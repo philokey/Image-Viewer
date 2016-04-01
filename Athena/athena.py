@@ -158,6 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.deleteBtn = QtWidgets.QPushButton('Delete')
         self.deleteBtn.clicked.connect(self.clickDeleteBtnBtn)
+        self.deleteBtn.setShortcut('SPACE')
         buttonLayout.addWidget(self.deleteBtn)
 
         crButtonLayout = QtWidgets.QHBoxLayout()
@@ -172,9 +173,11 @@ class MainWindow(QtWidgets.QMainWindow):
         pnButtonLayout = QtWidgets.QHBoxLayout()
         self.preBtn = QtWidgets.QPushButton('Previous')
         self.preBtn.clicked.connect(self.clickPreBtn)
+        self.preBtn.setShortcut('A')
         pnButtonLayout.addWidget(self.preBtn)
         self.nextBtn = QtWidgets.QPushButton('  Next  ')
         self.nextBtn.clicked.connect(self.clickNextBtn)
+        self.nextBtn.setShortcut('D')
         pnButtonLayout.addWidget(self.nextBtn)
         buttonLayout.addLayout(pnButtonLayout)
 
