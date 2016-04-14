@@ -10,8 +10,8 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-setup(  name = "athena",
-        version = "0.5",
+setup(name = "athena",
+        version = "0.6",
         description = "Annotation Tool!",
         options = {"build_exe": build_exe_options},
         executables = [Executable("athena.py", base=base)])
