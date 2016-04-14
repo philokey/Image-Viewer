@@ -148,7 +148,6 @@ class ImageContainer(QtWidgets.QFrame):
         painter.setFont(font)
         return painter
 
-
     def fitCircle(self):
         p1x, p1y = self.vertexes[-3].x(), self.vertexes[-3].y()
         p2x, p2y = self.vertexes[-2].x(), self.vertexes[-2].y()
@@ -176,13 +175,14 @@ class ImageContainer(QtWidgets.QFrame):
         points = np.array(points)
         # print(points)
         ell = cv2.fitEllipse(points)
-        print("%.6f %.6f %.6f %.6f %.3f" %(ell[0][0], ell[0][1], ell[1][0] / 2, ell[1][1] / 2, ell[2]))
+        print("%.6f %.6f %.6f %.6f %.3f" % (ell[0][0], ell[0][1], ell[1][0] / 2, ell[1][1] / 2, ell[2]))
         self.vertexes.clear()
+        self.result.append((ell[0][0], ell[0][1], ell[1][0] / 2, ell[1][1] / 2, ell[2]))
 
     def paintCircle(self):
         circle = self.fitCircle()
         self.result.append(circle)
-        painter = self.initMyPainter(self.type)
+        painter = self.initMyPainter(self.boxShape)
         cx, cy, r = circle[0], circle[1], circle[2]
         painter.drawEllipse(cx - r, cy - r, r*2, r*2)
         # painter.drawText(QtCore.QPoint(mx, my), str(len(self.result[self.type])))
@@ -259,7 +259,8 @@ class ImageContainer(QtWidgets.QFrame):
                     if self.scale != 1:
                         res = [p * self.scale for p in res]
                         # print(res)
-                    outFile.write(str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+                    outFile.write(' '.join(str(round(r, 5)) for r in res) + '\n')
+                    # outFile.write(str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
                 outFile.close()
         else:
             print("Nothing to save!")

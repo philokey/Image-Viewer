@@ -111,10 +111,11 @@ class MainWindow(QtWidgets.QMainWindow):
         rpGroup = QtWidgets.QButtonGroup(self)
         rpradButtonLayout = QtWidgets.QHBoxLayout()
         self.recRad = QtWidgets.QRadioButton("Circle")
-        self.recRad.clicked.connect(self.clickRecRad)
-        self.recRad.setChecked(True)
-        self.polyRad = QtWidgets.QRadioButton("Polygon")
-        self.polyRad.clicked.connect(self.clickPolyRad)
+        self.recRad.clicked.connect(self.clickCirRad)
+
+        self.polyRad = QtWidgets.QRadioButton("Ellipse")
+        self.polyRad.clicked.connect(self.clickEllRad)
+        self.polyRad.setChecked(True)
         rpradButtonLayout.addWidget(self.recRad)
         rpradButtonLayout.addWidget(self.polyRad)
         rpGroup.addButton(self.recRad)
@@ -159,10 +160,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.imageContainer.isLarge = True
         self.imageContainer.loadImage(self.imageContainer.imagePath)
 
-    def clickRecRad(self):
+    def clickCirRad(self):
         self.imageContainer.boxShape = 0
 
-    def clickPolyRad(self):
+    def clickEllRad(self):
         self.imageContainer.boxShape = 1
 
     def clickClearBtn(self):
