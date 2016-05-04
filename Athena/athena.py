@@ -15,6 +15,7 @@ FILE_TYPE = ['jpg', 'jpeg', 'tif', 'bmp', 'gif', 'png']
 RECT = 0
 POLY = 1
 
+
 class MainWindow(QtWidgets.QMainWindow):
     # _signal = QtCore.pyqtSignal()
     def __init__(self):
@@ -40,7 +41,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # menubar = self.menuBar()
         # file = menubar.addMenu('&File')
         # file.addAction(exit)
-
 
 
         # 文件, 图片, 按钮 三部分
