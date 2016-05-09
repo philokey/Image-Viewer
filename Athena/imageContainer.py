@@ -90,7 +90,7 @@ class ImageContainer(QtWidgets.QFrame):
     def clearImage(self):
         if self.imagePath != '':
             self.isModified = True
-            self.result = ([], [])
+            self.result = [[], []]
             self.vertexes.clear()
             self.image = self.oriImage.copy()
             scene = QtWidgets.QGraphicsScene()
